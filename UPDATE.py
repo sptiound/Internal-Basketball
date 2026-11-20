@@ -127,7 +127,7 @@ def load_rundown_per_hari(csv_url):
         return {}
 
 # ==============================================================================
-# 6. FUNGSI LOGIKA & RENDER BAGAN
+# 6. FUNGSI LOGIKA & RENDER BAGAN DENGAN PANAH SVG
 # ==============================================================================
 def get_win_lose(t1, s1, t2, s2, game_label):
     if s1 > s2:
@@ -159,7 +159,7 @@ def render_double_elim_bracket(b):
     if b["G10"][0] == 0 and b["G10"][1] == 0:
         champion = "Menunggu Hasil Grand Final"
 
-    st.caption("💡 *Jika dibuka lewat HP, geser bagan ke kanan/kiri untuk melihat seluruh pertandingan.*")
+    st.caption("💡 *Jika dibuka lewat HP, geser bagan ke kanan/kiri untuk melihat seluruh alur panah pertandingan.*")
 
     w1_gf = "winner" if b["G10"][0] > b["G10"][1] else ""
     w2_gf = "winner" if b["G10"][1] > b["G10"][0] else ""
@@ -186,84 +186,65 @@ def render_double_elim_bracket(b):
             -webkit-overflow-scrolling: touch;
             padding-bottom: 12px;
         }}
-        .bracket-board {{
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 22px;
-            min-width: 960px;
-            padding: 8px 4px;
+        /* Kanvas ukuran tetap 1000x570px agar panah SVG presisi 100% di semua layar */
+        .bracket-canvas {{
+            position: relative;
+            width: 1000px;
+            height: 570px;
+            margin: 0 auto;
         }}
-        .bracket-left {{
-            flex: 3.3;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
+        .bracket-svg {{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1000px;
+            height: 570px;
+            z-index: 1;
+            pointer-events: none;
         }}
-        .bracket-right {{
-            flex: 1.2;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }}
-        .bracket-rounds-row {{
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            align-items: start;
-        }}
-        .round-col {{
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }}
-        /* Posisi khusus agar Upper Final sejajar di tengah */
-        .col-upper-final {{
-            margin-top: 52px;
-        }}
-        /* Posisi khusus Lower Round 2 (agak ke atas sejajar Game 6) & Lower Final (agak ke bawah) */
-        .col-lower-r2 {{
-            margin-top: 0px;
-        }}
-        .col-lower-final {{
-            margin-top: 72px;
-        }}
-        .round-label {{
-            font-size: 12px;
-            color: #94A3B8;
-            margin-bottom: 2px;
-            font-weight: 600;
-        }}
-        .bracket-section-title {{
-            font-size: 15px;
+        .section-badge {{
+            position: absolute;
+            font-size: 14px;
             font-weight: 700;
-            color: #38BDF8;
-            margin-bottom: 10px;
-            padding-bottom: 6px;
+            padding-bottom: 4px;
             border-bottom: 1px solid #334155;
+            width: 710px;
+            z-index: 2;
+        }}
+        .round-tag {{
+            position: absolute;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94A3B8;
+            z-index: 2;
+        }}
+        .card-slot {{
+            position: absolute;
+            width: 210px;
+            z-index: 2;
         }}
         .match-card {{
             background-color: #1E293B;
             border: 1px solid #334155;
             border-radius: 8px;
-            padding: 10px 12px;
+            padding: 9px 12px;
             color: #F8FAFC;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25);
         }}
         .match-header {{
             font-size: 11px;
             font-weight: 700;
             color: #94A3B8;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-bottom: 1px solid #334155;
-            padding-bottom: 4px;
+            padding-bottom: 3px;
         }}
         .team-row {{
             display: flex;
             justify-content: space-between;
-            padding: 3px 0;
+            padding: 2px 0;
             font-size: 13px;
             gap: 8px;
         }}
@@ -271,11 +252,18 @@ def render_double_elim_bracket(b):
             font-weight: bold;
             color: #4ADE80;
         }}
+        .gf-slot {{
+            position: absolute;
+            left: 760px;
+            top: 195px;
+            width: 230px;
+            z-index: 2;
+        }}
         .grand-final-card {{
             background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
             border: 2px solid #F59E0B;
             border-radius: 10px;
-            padding: 16px;
+            padding: 14px;
             color: #F8FAFC;
             box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.25);
         }}
@@ -283,63 +271,106 @@ def render_double_elim_bracket(b):
             background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
             color: #FFFFFF;
             border-radius: 8px;
-            padding: 12px;
+            padding: 10px;
             text-align: center;
             font-weight: bold;
-            font-size: 14px;
-            margin-top: 12px;
+            font-size: 13px;
+            margin-top: 10px;
         }}
     </style>
     </head>
     <body>
         <div class="bracket-scroll-container">
-            <div class="bracket-board">
-                <div class="bracket-left">
-                    <div>
-                        <div class="bracket-section-title">🔼 UPPER BRACKET</div>
-                        <div class="bracket-rounds-row">
-                            <div class="round-col">
-                                <div class="round-label">Round 1 (Upper)</div>
-                                {match_card_html("GAME 1", b["TIM_B"], b["G1"][0], b["TIM_C"], b["G1"][1])}
-                                {match_card_html("GAME 2", b["TIM_D"], b["G2"][0], b["TIM_E"], b["G2"][1])}
-                            </div>
-                            <div class="round-col">
-                                <div class="round-label">Round 2 (Upper)</div>
-                                {match_card_html("GAME 3", b["TIM_A"], b["G3"][0], win_g1, b["G3"][1])}
-                                {match_card_html("GAME 4", win_g2, b["G4"][0], b["TIM_F"], b["G4"][1])}
-                            </div>
-                            <div class="round-col col-upper-final">
-                                <div class="round-label">Upper Final</div>
-                                {match_card_html("GAME 5", win_g3, b["G5"][0], win_g4, b["G5"][1])}
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="bracket-section-title" style="color:#F87171;">🔽 LOWER BRACKET</div>
-                        <div class="bracket-rounds-row">
-                            <div class="round-col">
-                                <div class="round-label">Lower Round 1</div>
-                                {match_card_html("GAME 6", lose_g1, b["G6"][0], lose_g3, b["G6"][1])}
-                                {match_card_html("GAME 7", lose_g2, b["G7"][0], lose_g4, b["G7"][1])}
-                            </div>
-                            <div class="round-col col-lower-r2">
-                                <div class="round-label">Lower Round 2</div>
-                                {match_card_html("GAME 8", lose_g5, b["G8"][0], win_g6, b["G8"][1])}
-                            </div>
-                            <div class="round-col col-lower-final">
-                                <div class="round-label">Lower Final</div>
-                                {match_card_html("GAME 9", win_g8, b["G9"][0], win_g7, b["G9"][1])}
-                            </div>
-                        </div>
-                    </div>
+            <div class="bracket-canvas">
+                
+                <!-- LAPISAN GARIS PANAH SVG -->
+                <svg class="bracket-svg" viewBox="0 0 1000 570">
+                    <defs>
+                        <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/>
+                        </marker>
+                        <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#F87171"/>
+                        </marker>
+                        <marker id="arrow-gold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/>
+                        </marker>
+                    </defs>
+
+                    <!-- UPPER BRACKET ARROWS -->
+                    <!-- Game 1 -> Game 3 -->
+                    <line x1="220" y1="98" x2="256" y2="98" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+                    <!-- Game 2 -> Game 4 -->
+                    <line x1="220" y1="203" x2="256" y2="203" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+                    <!-- Game 3 -> Game 5 (atas) -->
+                    <polyline points="470,98 490,98 490,140 506,140" fill="none" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+                    <!-- Game 4 -> Game 5 (bawah) -->
+                    <polyline points="470,203 490,203 490,162 506,162" fill="none" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+                    <!-- LOWER BRACKET ARROWS -->
+                    <!-- Game 6 -> Game 8 -->
+                    <line x1="220" y1="368" x2="256" y2="368" stroke="#F87171" stroke-width="2" marker-end="url(#arrow-red)"/>
+                    <!-- Game 8 -> Game 9 (atas) -->
+                    <polyline points="470,368 490,368 490,425 506,425" fill="none" stroke="#F87171" stroke-width="2" marker-end="url(#arrow-red)"/>
+                    <!-- Game 7 -> Game 9 (bawah) -->
+                    <line x1="220" y1="473" x2="506" y2="473" stroke="#F87171" stroke-width="2" marker-end="url(#arrow-red)"/>
+
+                    <!-- GRAND FINAL ARROWS -->
+                    <!-- Game 5 (Upper Final) -> Grand Final (Slot Atas) -->
+                    <polyline points="720,151 740,151 740,242 756,242" fill="none" stroke="#F59E0B" stroke-width="2.2" marker-end="url(#arrow-gold)"/>
+                    <!-- Game 9 (Lower Final) -> Grand Final (Slot Bawah) -->
+                    <polyline points="720,448 740,448 740,285 756,285" fill="none" stroke="#F59E0B" stroke-width="2.2" marker-end="url(#arrow-gold)"/>
+                </svg>
+
+                <!-- JUDUL & KARTU UPPER BRACKET -->
+                <div class="section-badge" style="left: 10px; top: 5px; color: #38BDF8;">🔼 UPPER BRACKET</div>
+                <div class="round-tag" style="left: 10px; top: 36px;">Round 1 (Upper)</div>
+                <div class="round-tag" style="left: 260px; top: 36px;">Round 2 (Upper)</div>
+                <div class="round-tag" style="left: 510px; top: 88px;">Upper Final</div>
+
+                <div class="card-slot" style="left: 10px; top: 55px;">
+                    {match_card_html("GAME 1", b["TIM_B"], b["G1"][0], b["TIM_C"], b["G1"][1])}
                 </div>
-                <div class="bracket-right">
+                <div class="card-slot" style="left: 10px; top: 160px;">
+                    {match_card_html("GAME 2", b["TIM_D"], b["G2"][0], b["TIM_E"], b["G2"][1])}
+                </div>
+                <div class="card-slot" style="left: 260px; top: 55px;">
+                    {match_card_html("GAME 3", b["TIM_A"], b["G3"][0], win_g1, b["G3"][1])}
+                </div>
+                <div class="card-slot" style="left: 260px; top: 160px;">
+                    {match_card_html("GAME 4", win_g2, b["G4"][0], b["TIM_F"], b["G4"][1])}
+                </div>
+                <div class="card-slot" style="left: 510px; top: 108px;">
+                    {match_card_html("GAME 5", win_g3, b["G5"][0], win_g4, b["G5"][1])}
+                </div>
+
+                <!-- JUDUL & KARTU LOWER BRACKET -->
+                <div class="section-badge" style="left: 10px; top: 275px; color: #F87171;">🔽 LOWER BRACKET</div>
+                <div class="round-tag" style="left: 10px; top: 306px;">Lower Round 1</div>
+                <div class="round-tag" style="left: 260px; top: 306px;">Lower Round 2</div>
+                <div class="round-tag" style="left: 510px; top: 385px;">Lower Final</div>
+
+                <div class="card-slot" style="left: 10px; top: 325px;">
+                    {match_card_html("GAME 6", lose_g1, b["G6"][0], lose_g3, b["G6"][1])}
+                </div>
+                <div class="card-slot" style="left: 10px; top: 430px;">
+                    {match_card_html("GAME 7", lose_g2, b["G7"][0], lose_g4, b["G7"][1])}
+                </div>
+                <div class="card-slot" style="left: 260px; top: 325px;">
+                    {match_card_html("GAME 8", lose_g5, b["G8"][0], win_g6, b["G8"][1])}
+                </div>
+                <div class="card-slot" style="left: 510px; top: 405px;">
+                    {match_card_html("GAME 9", win_g8, b["G9"][0], win_g7, b["G9"][1])}
+                </div>
+
+                <!-- GRAND FINAL (TENGAH VERTIKAL) -->
+                <div class="gf-slot">
                     <div class="grand-final-card">
                         <div class="match-header" style="color:#FBBF24;">🏆 GAME 10 • GRAND FINAL</div>
                         <div class="team-row {w1_gf}">
                             <span>{win_g5}</span><span>{b["G10"][0]}</span>
                         </div>
-                        <div style="text-align:center; font-size:12px; color:#94A3B8; margin:6px 0; font-weight:bold;">VS</div>
+                        <div style="text-align:center; font-size:12px; color:#94A3B8; margin:5px 0; font-weight:bold;">VS</div>
                         <div class="team-row {w2_gf}">
                             <span>{win_g9}</span><span>{b["G10"][1]}</span>
                         </div>
@@ -348,12 +379,13 @@ def render_double_elim_bracket(b):
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </body>
     </html>
     """
-    components.html(full_html, height=580, scrolling=False)
+    components.html(full_html, height=585, scrolling=False)
 
 # ==============================================================================
 # 7. TAMPILAN UTAMA APLIKASI
