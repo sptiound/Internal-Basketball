@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # ==============================================================================
-# 1. KONFIGURASI HALAMAN (Sidebar disembunyikan sepenuhnya)
+# 1. KONFIGURASI HALAMAN
 # ==============================================================================
 st.set_page_config(
     page_title="Nusantara Basketball Internal Competition",
@@ -76,33 +76,86 @@ GSHEET_VIEW_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit
 GSHEET_CSV_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/export?format=csv&gid={GID}"
 
 # ==============================================================================
-# 4. STYLING CSS (Naikkan posisi konten, header transparan & atur bagan)
+# 4. STYLING CSS (Responsive Horizontal Scroll untuk HP + Layout Bagan)
 # ==============================================================================
 st.markdown("""
 <style>
-    /* Naikkan posisi seluruh konten halaman ke atas */
     .block-container {
         padding-top: 1.5rem !important;
         padding-bottom: 2rem !important;
     }
-    
-    /* Buat header bawaan transparan agar tombol Deploy tetap terlihat */
     header[data-testid="stHeader"] {
         background: transparent;
     }
-    
-    /* Sembunyikan tombol panah sidebar */
     [data-testid="collapsedControl"] {
         display: none;
     }
 
-    /* Styling kartu pertandingan */
+    /* Container utama bagan agar bisa digeser ke samping di layar HP */
+    .bracket-scroll-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 12px;
+    }
+
+    /* Grid utama bagan dengan lebar minimum agar tidak turun di HP */
+    .bracket-board {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+        min-width: 980px;
+        padding: 10px 4px;
+    }
+
+    .bracket-left {
+        flex: 3.3;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .bracket-right {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .bracket-rounds-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        align-items: center;
+    }
+
+    .round-col {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .round-label {
+        font-size: 12px;
+        color: #94A3B8;
+        margin-bottom: 2px;
+    }
+
+    .bracket-section-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #38BDF8;
+        margin-bottom: 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #334155;
+    }
+
     .match-card {
         background-color: #1E293B;
         border: 1px solid #334155;
         border-radius: 8px;
         padding: 10px 12px;
-        margin-bottom: 14px;
         color: #F8FAFC;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
     }
@@ -121,17 +174,11 @@ st.markdown("""
         justify-content: space-between;
         padding: 3px 0;
         font-size: 13px;
+        gap: 8px;
     }
     .winner {
         font-weight: bold;
         color: #4ADE80;
-    }
-    .grand-final-wrapper {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        height: 610px;
-        padding-top: 40px;
     }
     .grand-final-card {
         background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
@@ -148,16 +195,8 @@ st.markdown("""
         padding: 12px;
         text-align: center;
         font-weight: bold;
-        font-size: 15px;
+        font-size: 14px;
         margin-top: 12px;
-    }
-    .bracket-section-title {
-        font-size: 16px;
-        font-weight: 700;
-        color: #38BDF8;
-        margin-bottom: 8px;
-        padding-bottom: 4px;
-        border-bottom: 1px solid #334155;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -201,7 +240,7 @@ def load_rundown_per_hari(csv_url):
         return {}
 
 # ==============================================================================
-# 6. FUNGSI LOGIKA & RENDER BAGAN DOUBLE ELIMINATION
+# 6. FUNGSI LOGIKA & RENDER BAGAN HORIZONTAL SCROLL
 # ==============================================================================
 def get_win_lose(t1, s1, t2, s2, game_label):
     if s1 > s2:
@@ -210,17 +249,16 @@ def get_win_lose(t1, s1, t2, s2, game_label):
         return t2, t1
     return f"Win {game_label}", f"Lose {game_label}"
 
-def render_match_card(title, t1, s1, t2, s2):
+def match_card_html(title, t1, s1, t2, s2):
     w1 = "winner" if s1 > s2 else ""
     w2 = "winner" if s2 > s1 else ""
-    html = f"""
+    return f"""
     <div class="match-card">
         <div class="match-header">{title}</div>
         <div class="team-row {w1}"><span>{t1}</span><span>{s1}</span></div>
         <div class="team-row {w2}"><span>{t2}</span><span>{s2}</span></div>
     </div>
     """
-    st.markdown(html, unsafe_allow_html=True)
 
 def render_double_elim_bracket(b):
     win_g1, lose_g1 = get_win_lose(b["TIM_B"], b["G1"][0], b["TIM_C"], b["G1"][1], "Game 1")
@@ -236,61 +274,73 @@ def render_double_elim_bracket(b):
     win_g8, _ = get_win_lose(lose_g5, b["G8"][0], win_g6, b["G8"][1], "Game 8")
     win_g9, _ = get_win_lose(win_g8, b["G9"][0], win_g7, b["G9"][1], "Game 9")
 
-    # Grand Final (Game 10): Atas = Win Game 5, Bawah = Win Game 9
     champion, _ = get_win_lose(win_g5, b["G10"][0], win_g9, b["G10"][1], "Game 10")
     if b["G10"][0] == 0 and b["G10"][1] == 0:
         champion = "Menunggu Hasil Grand Final"
 
-    left_area, right_area = st.columns([3.3, 1.2])
+    st.caption("💡 *Jika dibuka lewat HP, geser bagan ke kanan/kiri untuk melihat seluruh pertandingan.*")
 
-    with left_area:
-        st.markdown('<div class="bracket-section-title">🔼 UPPER BRACKET</div>', unsafe_allow_html=True)
-        u1, u2, u3 = st.columns(3)
-        with u1:
-            st.caption("Round 1 (Upper)")
-            render_match_card("GAME 1", b["TIM_B"], b["G1"][0], b["TIM_C"], b["G1"][1])
-            render_match_card("GAME 2", b["TIM_D"], b["G2"][0], b["TIM_E"], b["G2"][1])
-        with u2:
-            st.caption("Round 2 (Upper)")
-            render_match_card("GAME 3", b["TIM_A"], b["G3"][0], win_g1, b["G3"][1])
-            render_match_card("GAME 4", win_g2, b["G4"][0], b["TIM_F"], b["G4"][1])
-        with u3:
-            st.caption("Upper Final")
-            st.write(""); st.write("")
-            render_match_card("GAME 5", win_g3, b["G5"][0], win_g4, b["G5"][1])
-
-        st.markdown('<div class="bracket-section-title" style="color:#F87171; margin-top:10px;">🔽 LOWER BRACKET</div>', unsafe_allow_html=True)
-        l1, l2, l3 = st.columns(3)
-        with l1:
-            st.caption("Lower Round 1")
-            render_match_card("GAME 6", lose_g1, b["G6"][0], lose_g3, b["G6"][1])
-            render_match_card("GAME 7", lose_g2, b["G7"][0], lose_g4, b["G7"][1])
-        with l2:
-            st.caption("Lower Round 2")
-            render_match_card("GAME 8", lose_g5, b["G8"][0], win_g6, b["G8"][1])
-        with l3:
-            st.caption("Lower Final")
-            st.write(""); st.write("")
-            render_match_card("GAME 9", win_g8, b["G9"][0], win_g7, b["G9"][1])
-
-    with right_area:
-        st.markdown(f"""
-        <div class="grand-final-wrapper">
-            <div class="grand-final-card">
-                <div class="match-header" style="color:#FBBF24;">🏆 GAME 10 • GRAND FINAL</div>
-                <div class="team-row {'winner' if b['G10'][0] > b['G10'][1] else ''}">
-                    <span>{win_g5}</span><span>{b['G10'][0]}</span>
+    bracket_html = f"""
+    <div class="bracket-scroll-container">
+        <div class="bracket-board">
+            <div class="bracket-left">
+                <div>
+                    <div class="bracket-section-title">🔼 UPPER BRACKET</div>
+                    <div class="bracket-rounds-row">
+                        <div class="round-col">
+                            <div class="round-label">Round 1 (Upper)</div>
+                            {match_card_html("GAME 1", b["TIM_B"], b["G1"][0], b["TIM_C"], b["G1"][1])}
+                            {match_card_html("GAME 2", b["TIM_D"], b["G2"][0], b["TIM_E"], b["G2"][1])}
+                        </div>
+                        <div class="round-col">
+                            <div class="round-label">Round 2 (Upper)</div>
+                            {match_card_html("GAME 3", b["TIM_A"], b["G3"][0], win_g1, b["G3"][1])}
+                            {match_card_html("GAME 4", win_g2, b["G4"][0], b["TIM_F"], b["G4"][1])}
+                        </div>
+                        <div class="round-col">
+                            <div class="round-label">Upper Final</div>
+                            {match_card_html("GAME 5", win_g3, b["G5"][0], win_g4, b["G5"][1])}
+                        </div>
+                    </div>
                 </div>
-                <div style="text-align:center; font-size:12px; color:#94A3B8; margin:6px 0; font-weight:bold;">VS</div>
-                <div class="team-row {'winner' if b['G10'][1] > b['G10'][0] else ''}">
-                    <span>{win_g9}</span><span>{b['G10'][1]}</span>
+                <div>
+                    <div class="bracket-section-title" style="color:#F87171;">🔽 LOWER BRACKET</div>
+                    <div class="bracket-rounds-row">
+                        <div class="round-col">
+                            <div class="round-label">Lower Round 1</div>
+                            {match_card_html("GAME 6", lose_g1, b["G6"][0], lose_g3, b["G6"][1])}
+                            {match_card_html("GAME 7", lose_g2, b["G7"][0], lose_g4, b["G7"][1])}
+                        </div>
+                        <div class="round-col">
+                            <div class="round-label">Lower Round 2</div>
+                            {match_card_html("GAME 8", lose_g5, b["G8"][0], win_g6, b["G8"][1])}
+                        </div>
+                        <div class="round-col">
+                            <div class="round-label">Lower Final</div>
+                            {match_card_html("GAME 9", win_g8, b["G9"][0], win_g7, b["G9"][1])}
+                        </div>
+                    </div>
                 </div>
-                <div class="champion-box">
-                    👑 {champion}
+            </div>
+            <div class="bracket-right">
+                <div class="grand-final-card">
+                    <div class="match-header" style="color:#FBBF24;">🏆 GAME 10 • GRAND FINAL</div>
+                    <div class="team-row {'winner' if b['G10'][0] > b['G10'][1] else ''}">
+                        <span>{win_g5}</span><span>{b['G10'][0]}</span>
+                    </div>
+                    <div style="text-align:center; font-size:12px; color:#94A3B8; margin:6px 0; font-weight:bold;">VS</div>
+                    <div class="team-row {'winner' if b['G10'][1] > b['G10'][0] else ''}">
+                        <span>{win_g9}</span><span>{b['G10'][1]}</span>
+                    </div>
+                    <div class="champion-box">
+                        👑 {champion}
+                    </div>
                 </div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """
+    st.markdown(bracket_html, unsafe_allow_html=True)
 
 # ==============================================================================
 # 7. TAMPILAN UTAMA APLIKASI
