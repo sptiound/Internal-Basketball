@@ -186,7 +186,6 @@ def render_double_elim_bracket(b):
             -webkit-overflow-scrolling: touch;
             padding-bottom: 12px;
         }}
-        /* Kanvas ukuran tetap 1000x570px agar panah SVG presisi 100% di semua layar */
         .bracket-canvas {{
             position: relative;
             width: 1000px;
@@ -286,39 +285,29 @@ def render_double_elim_bracket(b):
                 <!-- LAPISAN GARIS PANAH SVG -->
                 <svg class="bracket-svg" viewBox="0 0 1000 570">
                     <defs>
-                        <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#38BDF8"/>
+                        <!-- Satu warna seragam untuk panah Upper & Lower -->
+                        <marker id="arrow-main" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#94A3B8"/>
                         </marker>
-                        <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                            <path d="M 0 1 L 10 5 L 0 9 z" fill="#F87171"/>
-                        </marker>
+                        <!-- Warna emas khusus menuju Grand Final -->
                         <marker id="arrow-gold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                             <path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B"/>
                         </marker>
                     </defs>
 
                     <!-- UPPER BRACKET ARROWS -->
-                    <!-- Game 1 -> Game 3 -->
-                    <line x1="220" y1="98" x2="256" y2="98" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-blue)"/>
-                    <!-- Game 2 -> Game 4 -->
-                    <line x1="220" y1="203" x2="256" y2="203" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-blue)"/>
-                    <!-- Game 3 -> Game 5 (atas) -->
-                    <polyline points="470,98 490,98 490,140 506,140" fill="none" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-blue)"/>
-                    <!-- Game 4 -> Game 5 (bawah) -->
-                    <polyline points="470,203 490,203 490,162 506,162" fill="none" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+                    <line x1="220" y1="98" x2="256" y2="98" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-main)"/>
+                    <line x1="220" y1="203" x2="256" y2="203" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-main)"/>
+                    <polyline points="470,98 490,98 490,140 506,140" fill="none" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-main)"/>
+                    <polyline points="470,203 490,203 490,162 506,162" fill="none" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-main)"/>
 
                     <!-- LOWER BRACKET ARROWS -->
-                    <!-- Game 6 -> Game 8 -->
-                    <line x1="220" y1="368" x2="256" y2="368" stroke="#F87171" stroke-width="2" marker-end="url(#arrow-red)"/>
-                    <!-- Game 8 -> Game 9 (atas) -->
-                    <polyline points="470,368 490,368 490,425 506,425" fill="none" stroke="#F87171" stroke-width="2" marker-end="url(#arrow-red)"/>
-                    <!-- Game 7 -> Game 9 (bawah) -->
-                    <line x1="220" y1="473" x2="506" y2="473" stroke="#F87171" stroke-width="2" marker-end="url(#arrow-red)"/>
+                    <line x1="220" y1="368" x2="256" y2="368" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-main)"/>
+                    <polyline points="470,368 490,368 490,425 506,425" fill="none" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-main)"/>
+                    <line x1="220" y1="473" x2="506" y2="473" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-main)"/>
 
                     <!-- GRAND FINAL ARROWS -->
-                    <!-- Game 5 (Upper Final) -> Grand Final (Slot Atas) -->
                     <polyline points="720,151 740,151 740,242 756,242" fill="none" stroke="#F59E0B" stroke-width="2.2" marker-end="url(#arrow-gold)"/>
-                    <!-- Game 9 (Lower Final) -> Grand Final (Slot Bawah) -->
                     <polyline points="720,448 740,448 740,285 756,285" fill="none" stroke="#F59E0B" stroke-width="2.2" marker-end="url(#arrow-gold)"/>
                 </svg>
 
