@@ -127,7 +127,7 @@ def load_rundown_per_hari(csv_url):
         return {}
 
 # ==============================================================================
-# 6. FUNGSI LOGIKA & RENDER BAGAN (MENGGUNAKAN COMPONENTS.HTML AGAR BEBAS ERROR)
+# 6. FUNGSI LOGIKA & RENDER BAGAN
 # ==============================================================================
 def get_win_lose(t1, s1, t2, s2, game_label):
     if s1 > s2:
@@ -210,12 +210,23 @@ def render_double_elim_bracket(b):
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 16px;
-            align-items: center;
+            align-items: start;
         }}
         .round-col {{
             display: flex;
             flex-direction: column;
             gap: 12px;
+        }}
+        /* Posisi khusus agar Upper Final sejajar di tengah */
+        .col-upper-final {{
+            margin-top: 52px;
+        }}
+        /* Posisi khusus Lower Round 2 (agak ke atas sejajar Game 6) & Lower Final (agak ke bawah) */
+        .col-lower-r2 {{
+            margin-top: 0px;
+        }}
+        .col-lower-final {{
+            margin-top: 72px;
         }}
         .round-label {{
             font-size: 12px;
@@ -297,7 +308,7 @@ def render_double_elim_bracket(b):
                                 {match_card_html("GAME 3", b["TIM_A"], b["G3"][0], win_g1, b["G3"][1])}
                                 {match_card_html("GAME 4", win_g2, b["G4"][0], b["TIM_F"], b["G4"][1])}
                             </div>
-                            <div class="round-col">
+                            <div class="round-col col-upper-final">
                                 <div class="round-label">Upper Final</div>
                                 {match_card_html("GAME 5", win_g3, b["G5"][0], win_g4, b["G5"][1])}
                             </div>
@@ -311,11 +322,11 @@ def render_double_elim_bracket(b):
                                 {match_card_html("GAME 6", lose_g1, b["G6"][0], lose_g3, b["G6"][1])}
                                 {match_card_html("GAME 7", lose_g2, b["G7"][0], lose_g4, b["G7"][1])}
                             </div>
-                            <div class="round-col">
+                            <div class="round-col col-lower-r2">
                                 <div class="round-label">Lower Round 2</div>
                                 {match_card_html("GAME 8", lose_g5, b["G8"][0], win_g6, b["G8"][1])}
                             </div>
-                            <div class="round-col">
+                            <div class="round-col col-lower-final">
                                 <div class="round-label">Lower Final</div>
                                 {match_card_html("GAME 9", win_g8, b["G9"][0], win_g7, b["G9"][1])}
                             </div>
@@ -342,7 +353,7 @@ def render_double_elim_bracket(b):
     </body>
     </html>
     """
-    components.html(full_html, height=560, scrolling=False)
+    components.html(full_html, height=580, scrolling=False)
 
 # ==============================================================================
 # 7. TAMPILAN UTAMA APLIKASI
