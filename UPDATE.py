@@ -29,7 +29,7 @@ DATA_PI = {
     "TIM_D": "Tim D",
     "TIM_E": "Tim E",
     "TIM_F": "Tim F (Seed 2)",
-    "G1": [0, 0],   # Tim B vs Tim C (Upper R1)
+    "G1": [15, 20],   # Tim B vs Tim C (Upper R1)
     "G2": [0, 0],   # Tim D vs Tim E (Upper R1)
     "G3": [0, 0],   # Tim A vs Win Game 1 (Upper R2)
     "G4": [0, 0],   # Win Game 2 vs Tim F (Upper R2)
