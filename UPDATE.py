@@ -30,15 +30,15 @@ DATA_PI = {
     "TIM_E": "Tim E",
     "TIM_F": "Tim F (Seed 2)",
     "G1": [15, 20],   # Tim B vs Tim C (Upper R1)
-    "G2": [0, 0],   # Tim D vs Tim E (Upper R1)
-    "G3": [0, 0],   # Tim A vs Win Game 1 (Upper R2)
-    "G4": [0, 0],   # Win Game 2 vs Tim F (Upper R2)
-    "G5": [0, 0],   # Win Game 3 vs Win Game 4 (Upper Final)
-    "G6": [0, 0],   # Lose Game 1 vs Lose Game 3 (Lower R1)
-    "G7": [0, 0],   # Lose Game 2 vs Lose Game 4 (Lower R1)
-    "G8": [0, 0],   # Lose Game 5 vs Win Game 6 (Lower R2)
-    "G9": [0, 0],   # Win Game 8 vs Win Game 7 (Lower Final)
-    "G10": [0, 0],  # Win Game 5 (Atas) vs Win Game 9 (Bawah) -> Grand Final
+    "G2": [5, 8],   # Tim D vs Tim E (Upper R1)
+    "G3": [30, 5],   # Tim A vs Win Game 1 (Upper R2)
+    "G4": [11, 13],   # Win Game 2 vs Tim F (Upper R2)
+    "G5": [20, 18],   # Win Game 3 vs Win Game 4 (Upper Final)
+    "G6": [20, 30],   # Lose Game 1 vs Lose Game 3 (Lower R1)
+    "G7": [15, 10],   # Lose Game 2 vs Lose Game 4 (Lower R1)
+    "G8": [12, 17],   # Lose Game 5 vs Win Game 6 (Lower R2)
+    "G9": [30, 33],   # Win Game 8 vs Win Game 7 (Lower Final)
+    "G10": [40, 44],  # Win Game 5 (Atas) vs Win Game 9 (Bawah) -> Grand Final
 }
 
 # --- C. DATA BAGAN KATEGORI PUTRA (PA) ---
